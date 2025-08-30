@@ -1,0 +1,45 @@
+name: CI Pipeline .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Clonar repositorio
+    - name: Clonar repositorio
+      uses: actions/checkout@v3
+
+    # 2. Configurar .NET (ejemplo con .NET 7)
+    - name: Configurar .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+
+    # 3. Restaurar dependencias
+    - name: Restaurar dependencias
+      run: dotnet restore
+
+    # 4. Compilar el proyecto
+    - name: Compilar proyecto
+      run: dotnet build --configuration Release --no-restore
+
+    # 5. Ejecutar pruebas automatizadas y generar reporte TRX
+    - name: Ejecutar pruebas
+      run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+    # 6. Subir el reporte de pruebas como artefacto
+    - name: Subir reporte de pruebas
+      uses: actions/upload-artifact@v3
+      with:
+        name: reporte-pruebas
+        path: '**/TestResults/*.trx'
+
+    # 7. Notificación simple (puedes cambiarlo por Slack/Teams)
+    - name: Notificación
+      run: echo "✅ Pipeline finalizado. Revisa los reportes en la sección Artifacts."
